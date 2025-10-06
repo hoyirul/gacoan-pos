@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import MainLayout from "@/components/mainLayout"
 
 export default function AdminPage() {
   const [loading, setLoading] = useState(true)
@@ -18,64 +19,51 @@ export default function AdminPage() {
     setLoading(false)
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("session_user")
-    router.push("/login")
-  }
-
   if (loading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>
   }
 
   return (
-    <main className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-emerald-600">👨‍💼 Admin Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
+    <MainLayout title="Admin Dashboard">
+      <main className="max-w-4xl mx-auto bg-gray-50 min-h-screen">
+        <p className="text-gray-700 mb-8">
+          Selamat datang, <span className="font-medium text-gray-900">Administrator</span> 👋
+        </p>
 
-      <p className="text-gray-700 mb-8">
-        Selamat datang, <span className="font-medium text-gray-900">Administrator</span> 👋
-      </p>
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <a
+            href="/admin/ingredients"
+            className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
+          >
+            <h2 className="text-lg font-semibold text-emerald-600 mb-1">🧂 Manage Ingredients</h2>
+            <p className="text-sm text-gray-600">Kelola data bahan baku yang tersedia.</p>
+          </a>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <a
-          href="/admin/ingredients"
-          className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
-        >
-          <h2 className="text-lg font-semibold text-emerald-600 mb-1">🧂 Manage Ingredients</h2>
-          <p className="text-sm text-gray-600">Kelola data bahan baku yang tersedia.</p>
-        </a>
+          <a
+            href="/admin/stock-mutations"
+            className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
+          >
+            <h2 className="text-lg font-semibold text-emerald-600 mb-1">📦 Stock Mutations</h2>
+            <p className="text-sm text-gray-600">Lihat dan catat perubahan stok.</p>
+          </a>
 
-        <a
-          href="/admin/stock-mutations"
-          className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
-        >
-          <h2 className="text-lg font-semibold text-emerald-600 mb-1">📦 Stock Mutations</h2>
-          <p className="text-sm text-gray-600">Lihat dan catat perubahan stok.</p>
-        </a>
+          <a
+            href="/admin/menus"
+            className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
+          >
+            <h2 className="text-lg font-semibold text-emerald-600 mb-1">🍽️ Manage Menus</h2>
+            <p className="text-sm text-gray-600">Atur daftar menu yang tersedia.</p>
+          </a>
 
-        <a
-          href="/admin/menus"
-          className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
-        >
-          <h2 className="text-lg font-semibold text-emerald-600 mb-1">🍽️ Manage Menus</h2>
-          <p className="text-sm text-gray-600">Atur daftar menu yang tersedia.</p>
-        </a>
-
-        <a
-          href="/admin/transactions"
-          className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
-        >
-          <h2 className="text-lg font-semibold text-emerald-600 mb-1">💳 View Transactions</h2>
-          <p className="text-sm text-gray-600">Cek histori transaksi pelanggan.</p>
-        </a>
-      </section>
-    </main>
+          <a
+            href="/admin/transactions"
+            className="block p-5 bg-white border border-emerald-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-300 transition"
+          >
+            <h2 className="text-lg font-semibold text-emerald-600 mb-1">💳 View Transactions</h2>
+            <p className="text-sm text-gray-600">Cek histori transaksi pelanggan.</p>
+          </a>
+        </section>
+      </main>
+    </MainLayout>
   )
 }

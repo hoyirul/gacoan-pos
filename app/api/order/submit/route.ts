@@ -1,3 +1,4 @@
+// app/api/order/submit/route.ts
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
       await prisma.stockMutation.create({
         data: {
           ingredientId: update.ingredientId,
-          quantity: -update.quantity,
+          quantity: update.quantity,
           type: "sale",
           note: "Self-service order",
         },
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
     // Simpan transaksi
     const transaction = await prisma.transaction.create({
       data: {
-        name: "Self-service Order",
+        name: body.name || "Guest",
         items: JSON.stringify(items),
         totalPrice,
       },

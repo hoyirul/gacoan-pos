@@ -1,23 +1,41 @@
 "use client"
 
-import { prisma } from "@/lib/prisma"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-export default async function OrderPage() {
-  const menus = await prisma.menu.findMany({
-    include: { bom: { include: { ingredient: true } } },
-  })
+export default function OrderPage() {
+  const [menus, setMenus] = useState<any[]>([])
+  const [loadingMenus, setLoadingMenus] = useState(true)
+
+  useEffect(() => {
+    // Fetch menus dari API
+    fetch("/api/order/menus")
+      .then((res) => res.json())
+      .then((data) => {
+        setMenus(data)
+        setLoadingMenus(false)
+      })
+      .catch((err) => {
+        console.error(err)
+        setLoadingMenus(false)
+      })
+  }, [])
+
+  if (loadingMenus) {
+    return <p className="text-center text-gray-500 mt-20">Loading menus...</p>
+  }
 
   const availableMenus = menus.filter((menu) =>
-    menu.bom.every((bom) => bom.ingredient.stock >= bom.quantity)
+    menu.bom.every((bom: any) => bom.ingredient.stock >= bom.quantity)
   )
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-4xl font-bold mb-10 text-center text-gray-800">
-        🧾 Self Service Order
-      </h1>
-      <OrderForm availableMenus={availableMenus} />
+    <main className="p-6 px-12 max-w-4xl mx-auto bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-emerald-600">Self-Service Order</h1>
+      </div>
+      <div className="max-w-4xl mx-auto">
+        <OrderForm availableMenus={availableMenus} />
+      </div>
     </main>
   )
 }
@@ -25,9 +43,11 @@ export default async function OrderPage() {
 // -----------------------
 // Form component
 // -----------------------
-function OrderForm({ availableMenus }: any) {
+function OrderForm({ availableMenus }: { availableMenus: any[] }) {
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({})
   const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [customerName, setCustomerName] = useState("")
 
   const handleChange = (menuId: number, value: string) => {
     setQuantities((prev) => ({ ...prev, [menuId]: parseInt(value) || 0 }))
@@ -49,7 +69,7 @@ function OrderForm({ availableMenus }: any) {
       const res = await fetch("/api/order/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, name: customerName.trim()}),
       })
 
       if (res.ok) {
@@ -67,70 +87,119 @@ function OrderForm({ availableMenus }: any) {
     }
   }
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-    >
-      {availableMenus.length === 0 && (
-        <p className="text-center text-gray-500 col-span-full text-lg">
-          Belum ada menu tersedia 😢
-        </p>
-      )}
+  const filteredMenus = availableMenus.filter((menu) =>
+    menu.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-      {availableMenus.map((menu: any) => (
-        <div
-          key={menu.id}
-          className="border rounded-xl shadow hover:shadow-md transition overflow-hidden bg-white flex flex-col"
-        >
-          {menu.imageUrl ? (
+  const totalItems = Object.values(quantities).reduce((acc, val) => acc + val, 0)
+  const totalPrice = availableMenus.reduce((acc: number, menu: any) => {
+    const qty = quantities[menu.id] || 0
+    return acc + menu.price * qty
+  }, 0)
+
+  if (availableMenus.length === 0) {
+    return <p className="text-center text-gray-500 text-lg mt-10">Belum ada menu tersedia 😢</p>
+  }
+
+  return (
+    <>
+      {/* Search */}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Cari menu..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-200"
+        />
+      </div>
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredMenus.map((menu) => (
+          <div
+            key={menu.id}
+            className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden flex flex-col"
+          >
             <img
-              src={menu.imageUrl}
+              src={menu.imageUrl || "/images/default.webp"}
               alt={menu.name}
               className="w-full h-40 object-cover"
             />
-          ) : (
-            // with public/images/default.webp
-            <img
-              src="/images/default.webp"
-              alt="Default Menu"
-              className="w-full h-40 object-cover"
-            />
-          )}
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h2 className="font-semibold text-gray-800">{menu.name}</h2>
+                  <span className="text-blue-600 font-bold">Rp {menu.price.toLocaleString()}</span>
+                </div>
 
-          <div className="p-4 flex-1 flex flex-col justify-between">
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="font-semibold text-lg text-gray-800">{menu.name}</h2>
-                <span className="text-blue-600 font-medium">
-                  Rp {menu.price.toLocaleString()}
-                </span>
+                {/* Input jumlah */}
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 justify-between">
+                    {/* Tombol minus */}
+                    <button
+                      type="button"
+                      onClick={() => handleChange(menu.id, String((quantities[menu.id] || 0) - 1))}
+                      className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+                      disabled={(quantities[menu.id] || 0) <= 0}
+                    >
+                      −
+                    </button>
+
+                    {/* Input read-only */}
+                    <input
+                      type="number"
+                      id={`menu-${menu.id}`}
+                      value={quantities[menu.id] || 0}
+                      readOnly
+                      className="w-16 text-center rounded-md p-1 bg-white font-bold text-xl"
+                    />
+
+                    {/* Tombol plus */}
+                    <button
+                      type="button"
+                      onClick={() => handleChange(menu.id, String((quantities[menu.id] || 0) + 1))}
+                      className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              <label className="block text-sm text-gray-600 mb-1">Jumlah:</label>
-              <input
-                type="number"
-                min={0}
-                value={quantities[menu.id] || 0}
-                onChange={(e) => handleChange(menu.id, e.target.value)}
-                className="w-full border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
             </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      {availableMenus.length > 0 && (
-        <div className="col-span-full text-center mt-8">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? "Processing..." : "🛒 Pesan Sekarang"}
-          </button>
-        </div>
-      )}
-    </form>
+        {/* Submit Button */}
+        {filteredMenus.length > 0 && (
+          <div className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 shadow-lg">
+            {/* input name */}
+            <div className="max-w-4xl mx-auto pt-4 px-4">
+              <input
+                type="text"
+                required
+                placeholder="Masukkan nama"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                disabled={loading}
+              />
+            </div>
+            <div className="max-w-4xl mx-auto p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <div className="text-gray-700 font-medium text-center sm:text-left">
+                Total Items: <span className="font-bold">{totalItems}</span> | Total Harga:{" "}
+                <span className="font-bold">Rp {totalPrice.toLocaleString()}</span>
+              </div>
+              <button
+                onClick={handleSubmit}
+                disabled={loading || totalItems === 0 || customerName.trim() === ""}
+                className="w-full sm:w-auto bg-emerald-500 text-white py-3 px-6 rounded-lg hover:bg-emerald-600 transition-all duration-150 disabled:opacity-50 cursor-pointer font-semibold"
+              >
+                {loading ? "Processing..." : "Submit Order"}
+              </button>
+            </div>
+          </div>
+        )}
+      </form>
+    </>
   )
 }

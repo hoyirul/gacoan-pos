@@ -55,37 +55,42 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex items-center justify-center h-screen bg-gray-50">
+    <main className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
       <form
         onSubmit={handleLogin}
-        className="bg-white shadow-md rounded p-6 w-full max-w-sm space-y-4"
+        className="bg-white shadow-lg rounded-xl p-8 w-full max-w-sm space-y-6"
       >
-        <h1 className="text-xl font-bold text-center">Login</h1>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <h1 className="text-2xl font-bold text-center text-emerald-600">Login</h1>
+        
+        {error && (
+          <p className="text-red-500 text-sm text-center">{error}</p>
+        )}
 
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          autoFocus
-          required
-          className="w-full p-2 border rounded"
-        />
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoFocus
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
+          />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full p-2 border rounded"
-        />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
+          />
+        </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="bg-emerald-500 text-white py-2 px-4 rounded w-full hover:bg-emerald-600 disabled:opacity-50"
+          className="w-full py-3 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition disabled:opacity-50"
         >
           {loading ? "Logging in..." : "Login"}
         </button>

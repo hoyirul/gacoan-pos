@@ -1,7 +1,7 @@
 // app/cashier/page.tsx (Server Component)
 import { prisma } from "@/lib/prisma"
 import CashierForm from "./cashierForm"
-import CashierHeader from "./cashierHeader"
+import MainLayout from "@/components/mainLayout"
 
 export default async function CashierPage() {
   const menus = await prisma.menu.findMany({
@@ -13,9 +13,10 @@ export default async function CashierPage() {
   )
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <CashierHeader />
-      <CashierForm availableMenus={availableMenus} />
-    </main>
+    <MainLayout title="Cashier">
+      <main className="max-w-4xl mx-auto">
+        <CashierForm availableMenus={availableMenus} />
+      </main>
+    </MainLayout>
   )
 }

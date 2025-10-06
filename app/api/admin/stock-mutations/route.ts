@@ -1,3 +1,4 @@
+// app/api/admin/stock-mutations/route.ts
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
