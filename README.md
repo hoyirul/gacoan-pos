@@ -2,6 +2,9 @@
 
 A simple but functional Point of Sale (POS) system for Gacoan-style F&B operations, built with Next.js App Router, Prisma ORM, and SQLite.
 
+# Youtube
+[Link Youtube](https://youtu.be/7r16z_Yuv4w)
+
 ---
 
 ## ✨ Features
