@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int @id @default(autoincrement())
+  name      String
+  username  String
+  password  String
+  role      String  @default("cashier") // "admin" atau "cashier"
+}
+
+model Menu {
+  id        Int       @id @default(autoincrement())
+  name      String
+  price     Int
+  imageUrl  String?   // Optional image URL
+  bom       BOM[]
+  createdAt DateTime  @default(now())
+}
+
+model Ingredient {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  stock     Int
+  bom       BOM[]
+  createdAt DateTime  @default(now())
+  stockMutations StockMutation[]
+}
+
+model StockMutation {
+  @@map("stock_mutations")
+  id           Int         @id @default(autoincrement())
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
+  ingredientId Int
+  quantity     Int         // + tambah, - kurang
+  type         String
+  note         String?
+  createdAt    DateTime    @default(now())
+}
+
+model BOM {
+  id           Int        @id @default(autoincrement())
+  menu         Menu       @relation(fields: [menuId], references: [id])
+  menuId       Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId Int
+  quantity     Int        // Jumlah bahan yang dibutuhkan
+}
+
+model Transaction {
+  id          Int       @id @default(autoincrement())
+  name        String
+  items       String    // Bisa simpan JSON string: menu & qty
+  totalPrice  Int
+  createdAt   DateTime  @default(now())
+}
